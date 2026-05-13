@@ -246,13 +246,147 @@ export function TodayView() {
             </button>
           </div>
 
+          {/* AI Decision Message */}
+          <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-2xl p-6 mb-6 shadow-xl shadow-purple-500/20"
+          >
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-white">
+                <h3 className="font-semibold mb-1">Organizamos tu día</h3>
+                <p className="text-white/90 text-sm">
+                  {activeTasks.length > 0
+                    ? `Priorizamos ${activeTasks.length} tareas según tus exámenes y progreso. Solo seguí el orden.`
+                    : '¡Completaste todo por hoy! Excelente trabajo.'
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-white text-sm">
+                <span>Progreso de hoy</span>
+                <span>{completedToday}/{totalToday} completadas</span>
+              </div>
+              <div className="h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+                <motion.div
+                  initial={{ width: `${progress}%` }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="h-full bg-white rounded-full shadow-lg"
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Task List */}
+          <AnimatePresence mode="popLayout">
+            {tasksWithMain.length > 0 ? (
+              <div className="space-y-4">
+                {tasksWithMain.map((task, index) => {
+                  const colors = subjectColors[task.subject] || colorOptions[0];
+                  return (
+                    <motion.div
+                      key={task.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{
+                        opacity: 0,
+                        scale: 0.8,
+                        height: 0,
+                        marginBottom: 0,
+                        transition: { duration: 0.3 }
+                      }}
+                      transition={{ delay: 0.05 * index, layout: { duration: 0.3 } }}
+                      onClick={() => handleStartTask(task.id)}
+                      className={`bg-white border-2 rounded-2xl p-6 cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] ${
+                        task.isMain
+                          ? 'border-purple-400 ring-4 ring-purple-100 shadow-lg'
+                          : `${colors.accent} hover:border-purple-300`
+                      }`}
+                    >
+                      {task.isMain && (
+                        <motion.div
+                          layout
+                          className="flex items-center gap-2 mb-4 bg-purple-50 -mx-6 -mt-6 px-6 py-3 rounded-t-2xl border-b-2 border-purple-200"
+                        >
+                          <AlertCircle className="w-5 h-5 text-purple-600" />
+                          <span className="text-purple-600 font-semibold text-sm">
+                            COMIENZA AQUÍ
+                          </span>
+                        </motion.div>
+                      )}
+
+                      <motion.div layout className="space-y-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`inline-block px-3 py-1 rounded-lg text-sm font-medium ${colors.bg} ${colors.text}`}>
+                                {task.subject}
+                              </span>
+                              <span className={`w-2.5 h-2.5 rounded-full ${
+                                task.priority === 'high' ? 'bg-red-500' :
+                                task.priority === 'medium' ? 'bg-yellow-500' :
+                                'bg-green-500'
+                              }`} />
+                            </div>
+                            <h3 className="text-lg">{task.title}</h3>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground flex-shrink-0">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm">{task.estimatedTime}</span>
+                          </div>
+                        </div>
+
+                        {/* AI Reasoning */}
+                        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                          <p className="text-sm text-purple-700">
+                            <span className="font-medium">Por qué ahora:</span> {task.reason}
+                          </p>
+                        </div>
+
+                        {task.isMain && (
+                          <div className="flex items-center justify-end gap-2 text-purple-600 font-medium pt-2">
+                            <span className="text-sm">Toca para comenzar</span>
+                            <span>→</span>
+                          </div>
+                        )}
+                      </motion.div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-8 text-center"
+              >
+                <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
+                <h2 className="text-emerald-700 mb-2">
+                  ¡Todo completado!
+                </h2>
+                <p className="text-emerald-600">
+                  Excelente trabajo. Descansá o revisá tu progreso.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Calendario de Exámenes */}
           {upcomingExams.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="bg-white border-2 border-purple-200 rounded-2xl p-6 mb-6 shadow-lg"
+              className="bg-white border-2 border-purple-200 rounded-2xl p-6 mt-6 shadow-lg"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -454,140 +588,6 @@ export function TodayView() {
               </AnimatePresence>
             </motion.div>
           )}
-
-          {/* AI Decision Message */}
-          <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-2xl p-6 mb-6 shadow-xl shadow-purple-500/20"
-          >
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-white">
-                <h3 className="font-semibold mb-1">Organizamos tu día</h3>
-                <p className="text-white/90 text-sm">
-                  {activeTasks.length > 0
-                    ? `Priorizamos ${activeTasks.length} tareas según tus exámenes y progreso. Solo seguí el orden.`
-                    : '¡Completaste todo por hoy! Excelente trabajo.'
-                  }
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-white text-sm">
-                <span>Progreso de hoy</span>
-                <span>{completedToday}/{totalToday} completadas</span>
-              </div>
-              <div className="h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-                <motion.div
-                  initial={{ width: `${progress}%` }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                  className="h-full bg-white rounded-full shadow-lg"
-                />
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Task List */}
-          <AnimatePresence mode="popLayout">
-            {tasksWithMain.length > 0 ? (
-              <div className="space-y-4">
-                {tasksWithMain.map((task, index) => {
-                  const colors = subjectColors[task.subject] || colorOptions[0];
-                  return (
-                    <motion.div
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{
-                        opacity: 0,
-                        scale: 0.8,
-                        height: 0,
-                        marginBottom: 0,
-                        transition: { duration: 0.3 }
-                      }}
-                      transition={{ delay: 0.05 * index, layout: { duration: 0.3 } }}
-                      onClick={() => handleStartTask(task.id)}
-                      className={`bg-white border-2 rounded-2xl p-6 cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] ${
-                        task.isMain
-                          ? 'border-purple-400 ring-4 ring-purple-100 shadow-lg'
-                          : `${colors.accent} hover:border-purple-300`
-                      }`}
-                    >
-                      {task.isMain && (
-                        <motion.div
-                          layout
-                          className="flex items-center gap-2 mb-4 bg-purple-50 -mx-6 -mt-6 px-6 py-3 rounded-t-2xl border-b-2 border-purple-200"
-                        >
-                          <AlertCircle className="w-5 h-5 text-purple-600" />
-                          <span className="text-purple-600 font-semibold text-sm">
-                            COMIENZA AQUÍ
-                          </span>
-                        </motion.div>
-                      )}
-
-                      <motion.div layout className="space-y-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className={`inline-block px-3 py-1 rounded-lg text-sm font-medium ${colors.bg} ${colors.text}`}>
-                                {task.subject}
-                              </span>
-                              <span className={`w-2.5 h-2.5 rounded-full ${
-                                task.priority === 'high' ? 'bg-red-500' :
-                                task.priority === 'medium' ? 'bg-yellow-500' :
-                                'bg-green-500'
-                              }`} />
-                            </div>
-                            <h3 className="text-lg">{task.title}</h3>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-muted-foreground flex-shrink-0">
-                            <Clock className="w-4 h-4" />
-                            <span className="text-sm">{task.estimatedTime}</span>
-                          </div>
-                        </div>
-
-                        {/* AI Reasoning */}
-                        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                          <p className="text-sm text-purple-700">
-                            <span className="font-medium">Por qué ahora:</span> {task.reason}
-                          </p>
-                        </div>
-
-                        {task.isMain && (
-                          <div className="flex items-center justify-end gap-2 text-purple-600 font-medium pt-2">
-                            <span className="text-sm">Toca para comenzar</span>
-                            <span>→</span>
-                          </div>
-                        )}
-                      </motion.div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-8 text-center"
-              >
-                <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
-                <h2 className="text-emerald-700 mb-2">
-                  ¡Todo completado!
-                </h2>
-                <p className="text-emerald-600">
-                  Excelente trabajo. Descansá o revisá tu progreso.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Help Section */}
           {activeTasks.length > 0 && (
